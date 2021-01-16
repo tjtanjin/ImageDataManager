@@ -179,6 +179,51 @@ public class ImageDataManager extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        final Tooltip pathTooltip0 = new Tooltip();
+        pathTooltip0.setText(
+                "The column name which contains image paths"
+        );
+
+        final Tooltip pathTooltip1 = new Tooltip();
+        pathTooltip1.setText(
+                "The column name you wish to give for constructed image paths"
+        );
+
+        final Tooltip labelTooltip0 = new Tooltip();
+        labelTooltip0.setText(
+                "The column name which contains image labels"
+        );
+
+        final Tooltip labelTooltip1 = new Tooltip();
+        labelTooltip1.setText(
+                "The column name you wish to give for the image labels"
+        );
+
+        final Tooltip csvTooltip0 = new Tooltip();
+        csvTooltip0.setText(
+                "The path to the CSV file to read image paths and labels from"
+        );
+
+        final Tooltip csvTooltip1 = new Tooltip();
+        csvTooltip1.setText(
+                "The name and path to where you wish to store your new CSV file"
+        );
+
+        final Tooltip imgTooltip0 = new Tooltip();
+        imgTooltip0.setText(
+                "The path to the directory containing your image files"
+        );
+
+        final Tooltip imgTooltip1 = new Tooltip();
+        imgTooltip1.setText(
+                "The path to the subdirectories of your image files"
+        );
+
+        final Tooltip operationType = new Tooltip();
+        operationType.setText(
+                "The mode of operation to switch from directory labels to csv labels or vice versa"
+        );
+
         //setup gridpane container
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(10, 10, 10, 10));
@@ -190,24 +235,28 @@ public class ImageDataManager extends Application {
         pathColumnName.setPromptText("Enter image path column");
         GridPane.setConstraints(pathColumnName, 0, 0);
         grid.getChildren().add(pathColumnName);
+        pathColumnName.setTooltip(pathTooltip0);
 
         //label column name textfield
         final TextField labelColumnName = new TextField();
         labelColumnName.setPromptText("Enter label column");
         GridPane.setConstraints(labelColumnName, 0, 1);
         grid.getChildren().add(labelColumnName);
+        labelColumnName.setTooltip(labelTooltip0);
 
         //csv file path textfield
         final TextField csvPath = new TextField();
         csvPath.setPromptText("Enter csv path");
         GridPane.setConstraints(csvPath, 0, 2);
         grid.getChildren().add(csvPath);
+        csvPath.setTooltip(csvTooltip0);
 
         //image file path textfield
         final TextField imgPath = new TextField();
         imgPath.setPromptText("Enter image path");
         GridPane.setConstraints(imgPath, 0, 3);
         grid.getChildren().add(imgPath);
+        imgPath.setTooltip(imgTooltip0);
 
         //mode type dropdown
         ComboBox comboBox = new ComboBox();
@@ -217,6 +266,21 @@ public class ImageDataManager extends Application {
         comboBox.getItems().add("Directories to CSV");
         comboBox.getSelectionModel().selectFirst();
         grid.getChildren().add(comboBox);
+        comboBox.setTooltip(operationType);
+        comboBox.setOnAction(e -> {
+
+            if (comboBox.getValue() == "CSV to Directories") {
+                pathColumnName.setTooltip(pathTooltip0);
+                labelColumnName.setTooltip(labelTooltip0);
+                csvPath.setTooltip(csvTooltip0);
+                imgPath.setTooltip(imgTooltip0);
+            } else {
+                pathColumnName.setTooltip(pathTooltip1);
+                labelColumnName.setTooltip(labelTooltip1);
+                csvPath.setTooltip(csvTooltip1);
+                imgPath.setTooltip(imgTooltip1);
+            }
+        });
 
         //start button for processing image data
         Button start = new Button("Start");
