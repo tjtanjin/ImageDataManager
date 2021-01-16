@@ -219,9 +219,19 @@ public class ImageDataManager extends Application {
                 "The path to the subdirectories of your image files"
         );
 
-        final Tooltip operationType = new Tooltip();
-        operationType.setText(
+        final Tooltip operationTypeTooltip = new Tooltip();
+        operationTypeTooltip.setText(
                 "The mode of operation to switch from directory labels to csv labels or vice versa"
+        );
+
+        final Tooltip startButtonTooltip = new Tooltip();
+        startButtonTooltip.setText(
+                "Start processing images/csv"
+        );
+
+        final Tooltip clearButtonTooltip = new Tooltip();
+        clearButtonTooltip.setText(
+                "Clear all text fields above"
         );
 
         //setup gridpane container
@@ -266,7 +276,7 @@ public class ImageDataManager extends Application {
         comboBox.getItems().add("Directories to CSV");
         comboBox.getSelectionModel().selectFirst();
         grid.getChildren().add(comboBox);
-        comboBox.setTooltip(operationType);
+        comboBox.setTooltip(operationTypeTooltip);
         comboBox.setOnAction(e -> {
 
             if (comboBox.getValue() == "CSV to Directories") {
@@ -287,6 +297,7 @@ public class ImageDataManager extends Application {
         GridPane.setConstraints(start, 0, 5);
         start.setPrefWidth(200);
         grid.getChildren().add(start);
+        start.setTooltip(startButtonTooltip);
         start.setOnAction(new EventHandler<>() {
 
             @Override
@@ -317,6 +328,7 @@ public class ImageDataManager extends Application {
         GridPane.setConstraints(clearFields, 0, 6);
         clearFields.setPrefWidth(200);
         grid.getChildren().add(clearFields);
+        clearFields.setTooltip(clearButtonTooltip);
         clearFields.setOnAction(new EventHandler<>() {
 
             @Override
