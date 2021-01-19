@@ -14,6 +14,7 @@ import javafx.geometry.*;
 import javafx.stage.Stage;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
+import javafx.scene.text.Text;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -23,13 +24,17 @@ public class ImageDataManager extends Application {
         System.out.println("Running...");
     }
 
-    public static void csvToDirectories(String pathColumnName, String labelColumnName, String csvPath)
+    public static void csvToDirectories(String pathColumnName, String labelColumnName, String csvPath, Text text)
             throws IOException, CsvValidationException
     {
         ArrayList<String>[] pathsAndLabels = processCsv(pathColumnName, labelColumnName, csvPath);
         ArrayList<String> paths = pathsAndLabels[0];
         ArrayList<String> labels = pathsAndLabels[1];
-        createDirectories(paths, labels);
+        if (createDirectories(paths, labels)) {
+            text.setText("Operation complete!");
+        } else {
+            text.setText("An error has occurred.");
+        }
     }
 
     public static ArrayList<String>[] processCsv(String pathColumnName, String labelColumnName, String csvPath)
@@ -65,7 +70,7 @@ public class ImageDataManager extends Application {
         return -1;
     }
 
-    public static void createDirectories(ArrayList<String> paths, ArrayList<String> labels) throws IOException {
+    public static boolean createDirectories(ArrayList<String> paths, ArrayList<String> labels) {
         for (int i = 0; i < paths.size(); i++) {
             String path = paths.get(i);
             String label = labels.get(i);
@@ -87,18 +92,23 @@ public class ImageDataManager extends Application {
                 }
             } catch (IOException e) {
                 System.out.println(e.getMessage());
-                throw e;
+                return false;
             }
         }
+        return true;
     }
 
-    public static void directoriesToCsv(String pathColumnName, String labelColumnName, String csvPath, String imgPath)
+    public static void directoriesToCsv(String pathColumnName, String labelColumnName, String csvPath, String imgPath, Text text)
             throws IOException, CsvValidationException
     {
         ArrayList<String>[] pathsAndLabels = processDirectories(imgPath);
         ArrayList<String> paths = pathsAndLabels[0];
         ArrayList<String> labels = pathsAndLabels[1];
-        createCsv(pathColumnName, labelColumnName, paths, labels, csvPath);
+        if (createCsv(pathColumnName, labelColumnName, paths, labels, csvPath)) {
+            text.setText("Operation complete!");
+        } else {
+            text.setText("An error has occurred.");
+        }
     }
 
     public static ArrayList<String>[] processDirectories(String imgPath) {
@@ -149,9 +159,7 @@ public class ImageDataManager extends Application {
         return new ArrayList[]{paths, labels};
     }
 
-    public static void createCsv(String pathColumnName, String labelColumnName, ArrayList<String> paths, ArrayList<String> labels, String csvPath)
-        throws IOException
-    {
+    public static boolean createCsv(String pathColumnName, String labelColumnName, ArrayList<String> paths, ArrayList<String> labels, String csvPath) {
         try {
             CSVWriter csvWrite = new CSVWriter(new FileWriter(csvPath));
             String[] headers = {pathColumnName, labelColumnName};
@@ -163,8 +171,9 @@ public class ImageDataManager extends Application {
             csvWrite.close();
         } catch (IOException e) {
             System.out.println(e.getMessage());
-            throw e;
+            return false;
         }
+        return true;
     }
 
     @Override
@@ -282,6 +291,12 @@ public class ImageDataManager extends Application {
             }
         });
 
+        //text line for informing user of successful/failed operations
+        Text text = new Text();
+        GridPane.setConstraints(text, 0, 7);
+        GridPane.setHalignment(text, HPos.CENTER);
+        grid.getChildren().add(text);
+
         //start button for processing image data
         Button start = new Button("Start");
         GridPane.setConstraints(start, 0, 5);
@@ -292,13 +307,13 @@ public class ImageDataManager extends Application {
             // TODO Auto-generated method stub
             if (comboBox.getValue() == "CSV to Directories") {
                 try {
-                    csvToDirectories(pathColumnName.getText(), labelColumnName.getText(), csvPath.getText());
+                    csvToDirectories(pathColumnName.getText(), labelColumnName.getText(), csvPath.getText(), text);
                 } catch (IOException | CsvValidationException e) {
                     System.out.println(e.getMessage());
                 }
             } else {
                 try {
-                    directoriesToCsv(pathColumnName.getText(), labelColumnName.getText(), csvPath.getText(), imgPath.getText());
+                    directoriesToCsv(pathColumnName.getText(), labelColumnName.getText(), csvPath.getText(), imgPath.getText(), text);
                 } catch (IOException | CsvValidationException e) {
                     System.out.println(e.getMessage());
                 }
