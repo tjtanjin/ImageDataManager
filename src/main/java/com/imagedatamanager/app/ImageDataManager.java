@@ -9,8 +9,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.nio.file.*;
 import javafx.application.Application;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.geometry.*;
 import javafx.stage.Stage;
@@ -21,24 +19,24 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class ImageDataManager extends Application {
-    public static void main(String[] args) throws IOException, CsvValidationException {
+    public static void main(String[] args) {
         System.out.println("Running...");
     }
 
-    public static void csvToDirectories(String pathColumnName, String labelColumnName, String csvPath, String imgPath)
+    public static void csvToDirectories(String pathColumnName, String labelColumnName, String csvPath)
             throws IOException, CsvValidationException
     {
         ArrayList<String>[] pathsAndLabels = processCsv(pathColumnName, labelColumnName, csvPath);
         ArrayList<String> paths = pathsAndLabels[0];
         ArrayList<String> labels = pathsAndLabels[1];
-        createDirectories(paths, labels, imgPath);
+        createDirectories(paths, labels);
     }
 
     public static ArrayList<String>[] processCsv(String pathColumnName, String labelColumnName, String csvPath)
         throws IOException, CsvValidationException
     {
-        ArrayList<String> paths = new ArrayList<String>();
-        ArrayList<String> labels = new ArrayList<String>();
+        ArrayList<String> paths = new ArrayList<>();
+        ArrayList<String> labels = new ArrayList<>();
         try (FileReader fr = new FileReader(csvPath, StandardCharsets.UTF_8); CSVReader reader = new CSVReader(fr)) {
             String[] header = reader.readNext();
             int labelIndex = getColumnIndex(header, labelColumnName);
@@ -51,10 +49,7 @@ public class ImageDataManager extends Application {
                 paths.add(nextLine[pathIndex]);
                 labels.add(nextLine[labelIndex]);
             }
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-            throw e;
-        } catch (CsvValidationException e) {
+        } catch (IOException | CsvValidationException e) {
             System.out.println(e.getMessage());
             throw e;
         }
@@ -70,13 +65,14 @@ public class ImageDataManager extends Application {
         return -1;
     }
 
-    public static void createDirectories(ArrayList<String> paths, ArrayList<String> labels, String imgPath) throws IOException {
+    public static void createDirectories(ArrayList<String> paths, ArrayList<String> labels) throws IOException {
         for (int i = 0; i < paths.size(); i++) {
             String path = paths.get(i);
             String label = labels.get(i);
 
             String filePath = "./src/main/resources/train/".concat(label);
             File file = new File(filePath);
+            //noinspection ResultOfMethodCallIgnored
             file.mkdir();
             String fromFile = "./src/main/resources/train/".concat(path);
             String toFile = filePath.concat("/").concat(path);
@@ -105,32 +101,25 @@ public class ImageDataManager extends Application {
         createCsv(pathColumnName, labelColumnName, paths, labels, csvPath);
     }
 
-    public static ArrayList<String>[] processDirectories(String imgPath)
-            throws IOException, CsvValidationException
-    {
-        ArrayList<String> paths = new ArrayList<String>();
-        ArrayList<String> labels = new ArrayList<String>();
+    public static ArrayList<String>[] processDirectories(String imgPath) {
+        ArrayList<String> paths = new ArrayList<>();
+        ArrayList<String> labels = new ArrayList<>();
 
         try {
             File f = new File(imgPath);
 
-            FilenameFilter filter = new FilenameFilter() {
-                @Override
-                public boolean accept(File f, String name) {
-                    // We only want folders
-                    return f.isDirectory() && !name.equals(".DS_Store");
-                }
+            FilenameFilter filter = (f1, name) -> {
+                // We only want folders
+                return f1.isDirectory() && !name.equals(".DS_Store");
             };
 
             File[] files = f.listFiles(filter);
 
-            for (int i = 0; i < files.length; i++) {
+            for (File value : files) {
                 System.out.println(files.length);
-                File file = files[i];
-                String label = file.getName();
-                String[] imgNames = file.list();
-                for (int j = 0; j < imgNames.length; j++) {
-                    String imgName = imgNames[j];
+                String label = value.getName();
+                String[] imgNames = value.list();
+                for (String imgName : imgNames) {
                     paths.add(imgName);
                     labels.add(label);
 
@@ -149,7 +138,8 @@ public class ImageDataManager extends Application {
                         throw e;
                     }
                 }
-                file.delete();
+                //noinspection ResultOfMethodCallIgnored
+                value.delete();
             }
         } catch (Exception e) {
             System.out.println("Help");
@@ -269,7 +259,7 @@ public class ImageDataManager extends Application {
         imgPath.setTooltip(imgTooltip0);
 
         //mode type dropdown
-        ComboBox comboBox = new ComboBox();
+        ComboBox comboBox = new ComboBox<>();
         GridPane.setConstraints(comboBox, 0, 4);
         comboBox.setPrefWidth(200);
         comboBox.getItems().add("CSV to Directories");
@@ -298,27 +288,19 @@ public class ImageDataManager extends Application {
         start.setPrefWidth(200);
         grid.getChildren().add(start);
         start.setTooltip(startButtonTooltip);
-        start.setOnAction(new EventHandler<>() {
-
-            @Override
-            public void handle(ActionEvent arg0) {
-                // TODO Auto-generated method stub
-                if (comboBox.getValue() == "CSV to Directories") {
-                    try {
-                        csvToDirectories(pathColumnName.getText(), labelColumnName.getText(), csvPath.getText(), imgPath.getText());
-                    } catch (IOException e) {
-                        System.out.println(e.getMessage());
-                    } catch (CsvValidationException e) {
-                        System.out.println(e.getMessage());
-                    }
-                } else {
-                    try {
-                        directoriesToCsv(pathColumnName.getText(), labelColumnName.getText(), csvPath.getText(), imgPath.getText());
-                    } catch (IOException e) {
-                        System.out.println(e.getMessage());
-                    } catch (CsvValidationException e) {
-                        System.out.println(e.getMessage());
-                    }
+        start.setOnAction(arg0 -> {
+            // TODO Auto-generated method stub
+            if (comboBox.getValue() == "CSV to Directories") {
+                try {
+                    csvToDirectories(pathColumnName.getText(), labelColumnName.getText(), csvPath.getText());
+                } catch (IOException | CsvValidationException e) {
+                    System.out.println(e.getMessage());
+                }
+            } else {
+                try {
+                    directoriesToCsv(pathColumnName.getText(), labelColumnName.getText(), csvPath.getText(), imgPath.getText());
+                } catch (IOException | CsvValidationException e) {
+                    System.out.println(e.getMessage());
                 }
             }
         });
@@ -329,16 +311,12 @@ public class ImageDataManager extends Application {
         clearFields.setPrefWidth(200);
         grid.getChildren().add(clearFields);
         clearFields.setTooltip(clearButtonTooltip);
-        clearFields.setOnAction(new EventHandler<>() {
-
-            @Override
-            public void handle(ActionEvent arg0) {
-                // TODO Auto-generated method stub
-                pathColumnName.setText("");
-                labelColumnName.setText("");
-                csvPath.setText("");
-                imgPath.setText("");
-            }
+        clearFields.setOnAction(arg0 -> {
+            // TODO Auto-generated method stub
+            pathColumnName.setText("");
+            labelColumnName.setText("");
+            csvPath.setText("");
+            imgPath.setText("");
         });
 
         //setup scene
