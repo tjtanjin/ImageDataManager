@@ -29,12 +29,16 @@ public class ImageDataManager extends Application {
             throws IOException, CsvValidationException
     {
         ArrayList<ArrayList<String>> pathsAndLabels = processCsv(pathColumnName, labelColumnName, csvPath);
-        ArrayList<String> paths = pathsAndLabels.get(0);
-        ArrayList<String> labels = pathsAndLabels.get(1);
-        if (!paths.isEmpty() && createDirectories(paths, labels)) {
-            text.setText("Operation complete!");
+        if (pathsAndLabels != null) {
+            ArrayList<String> paths = pathsAndLabels.get(0);
+            ArrayList<String> labels = pathsAndLabels.get(1);
+            if (!paths.isEmpty() && createDirectories(paths, labels)) {
+                text.setText("Operation complete!");
+            } else {
+                text.setText("An error has occurred.");
+            }
         } else {
-            text.setText("An error has occurred.");
+            text.setText("Invalid paths/labels!");
         }
     }
 
@@ -124,30 +128,34 @@ public class ImageDataManager extends Application {
 
             File[] files = f.listFiles(filter);
 
-            for (File value : files) {
-                String label = value.getName();
-                String[] imgNames = value.list();
-                for (String imgName : imgNames) {
-                    paths.add(imgName);
-                    labels.add(label);
+            if (files != null) {
+                for (File value : files) {
+                    String label = value.getName();
+                    String[] imgNames = value.list();
+                    if (imgNames != null) {
+                        for (String imgName : imgNames) {
+                            paths.add(imgName);
+                            labels.add(label);
 
-                    String fromFile = imgPath.concat("/").concat(label).concat("/").concat(imgName);
-                    String toFile = imgPath.concat("/").concat(imgName);
+                            String fromFile = imgPath.concat("/").concat(label).concat("/").concat(imgName);
+                            String toFile = imgPath.concat("/").concat(imgName);
 
-                    Path source = Paths.get(fromFile);
-                    Path target = Paths.get(toFile);
+                            Path source = Paths.get(fromFile);
+                            Path target = Paths.get(toFile);
 
-                    try {
-                        if (Files.exists(source)) {
-                            Files.move(source, target);
+                            try {
+                                if (Files.exists(source)) {
+                                    Files.move(source, target);
+                                }
+                            } catch (IOException e) {
+                                System.out.println(e.getMessage());
+                                throw e;
+                            }
                         }
-                    } catch (IOException e) {
-                        System.out.println(e.getMessage());
-                        throw e;
                     }
+                    //noinspection ResultOfMethodCallIgnored
+                    value.delete();
                 }
-                //noinspection ResultOfMethodCallIgnored
-                value.delete();
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
