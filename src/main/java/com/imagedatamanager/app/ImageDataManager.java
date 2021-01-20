@@ -18,6 +18,7 @@ import javafx.scene.text.Text;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ImageDataManager extends Application {
     public static void main(String[] args) {
@@ -27,9 +28,9 @@ public class ImageDataManager extends Application {
     public static void csvToDirectories(String pathColumnName, String labelColumnName, String csvPath, Text text)
             throws IOException, CsvValidationException
     {
-        ArrayList<String>[] pathsAndLabels = processCsv(pathColumnName, labelColumnName, csvPath);
-        ArrayList<String> paths = pathsAndLabels[0];
-        ArrayList<String> labels = pathsAndLabels[1];
+        ArrayList<ArrayList<String>> pathsAndLabels = processCsv(pathColumnName, labelColumnName, csvPath);
+        ArrayList<String> paths = pathsAndLabels.get(0);
+        ArrayList<String> labels = pathsAndLabels.get(1);
         if (!paths.isEmpty() && createDirectories(paths, labels)) {
             text.setText("Operation complete!");
         } else {
@@ -37,9 +38,7 @@ public class ImageDataManager extends Application {
         }
     }
 
-    public static ArrayList<String>[] processCsv(String pathColumnName, String labelColumnName, String csvPath)
-        throws IOException, CsvValidationException
-    {
+    public static ArrayList<ArrayList<String>> processCsv(String pathColumnName, String labelColumnName, String csvPath) {
         ArrayList<String> paths = new ArrayList<>();
         ArrayList<String> labels = new ArrayList<>();
         try (FileReader fr = new FileReader(csvPath, StandardCharsets.UTF_8); CSVReader reader = new CSVReader(fr)) {
@@ -56,9 +55,8 @@ public class ImageDataManager extends Application {
             }
         } catch (IOException | CsvValidationException e) {
             System.out.println(e.getMessage());
-            throw e;
         }
-        return new ArrayList[]{paths, labels};
+        return new ArrayList<>(Arrays.asList(paths, labels));
     }
 
     public static int getColumnIndex(String[] row, String columnName) {
@@ -102,9 +100,9 @@ public class ImageDataManager extends Application {
     public static void directoriesToCsv(String pathColumnName, String labelColumnName, String csvPath, String imgPath, Text text)
             throws IOException, CsvValidationException
     {
-        ArrayList<String>[] pathsAndLabels = processDirectories(imgPath);
-        ArrayList<String> paths = pathsAndLabels[0];
-        ArrayList<String> labels = pathsAndLabels[1];
+        ArrayList<ArrayList<String>> pathsAndLabels = processDirectories(imgPath);
+        ArrayList<String> paths = pathsAndLabels.get(0);
+        ArrayList<String> labels = pathsAndLabels.get(1);
         if (!paths.isEmpty() && createCsv(pathColumnName, labelColumnName, paths, labels, csvPath)) {
             text.setText("Operation complete!");
         } else {
@@ -112,7 +110,7 @@ public class ImageDataManager extends Application {
         }
     }
 
-    public static ArrayList<String>[] processDirectories(String imgPath) {
+    public static ArrayList<ArrayList<String>> processDirectories(String imgPath) {
         ArrayList<String> paths = new ArrayList<>();
         ArrayList<String> labels = new ArrayList<>();
 
@@ -154,8 +152,7 @@ public class ImageDataManager extends Application {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-
-        return new ArrayList[]{paths, labels};
+        return new ArrayList<>(Arrays.asList(paths, labels));
     }
 
     public static boolean createCsv(String pathColumnName, String labelColumnName, ArrayList<String> paths, ArrayList<String> labels, String csvPath) {
@@ -267,7 +264,7 @@ public class ImageDataManager extends Application {
         imgPath.setTooltip(imgTooltip0);
 
         //mode type dropdown
-        ComboBox comboBox = new ComboBox<>();
+        ComboBox<String> comboBox = new ComboBox<>();
         GridPane.setConstraints(comboBox, 0, 4);
         comboBox.setPrefWidth(200);
         comboBox.getItems().add("CSV to Directories");
@@ -277,7 +274,7 @@ public class ImageDataManager extends Application {
         comboBox.setTooltip(operationTypeTooltip);
         comboBox.setOnAction(e -> {
 
-            if (comboBox.getValue() == "CSV to Directories") {
+            if (comboBox.getValue().equals("CSV to Directories")) {
                 pathColumnName.setTooltip(pathTooltip0);
                 labelColumnName.setTooltip(labelTooltip0);
                 csvPath.setTooltip(csvTooltip0);
@@ -304,7 +301,7 @@ public class ImageDataManager extends Application {
         start.setTooltip(startButtonTooltip);
         start.setOnAction(arg0 -> {
             // TODO Auto-generated method stub
-            if (comboBox.getValue() == "CSV to Directories") {
+            if (comboBox.getValue().equals("CSV to Directories")) {
                 try {
                     csvToDirectories(pathColumnName.getText(), labelColumnName.getText(), csvPath.getText(), text);
                 } catch (IOException | CsvValidationException e) {
