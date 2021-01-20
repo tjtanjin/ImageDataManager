@@ -30,7 +30,7 @@ public class ImageDataManager extends Application {
         ArrayList<String>[] pathsAndLabels = processCsv(pathColumnName, labelColumnName, csvPath);
         ArrayList<String> paths = pathsAndLabels[0];
         ArrayList<String> labels = pathsAndLabels[1];
-        if (createDirectories(paths, labels)) {
+        if (!paths.isEmpty() && createDirectories(paths, labels)) {
             text.setText("Operation complete!");
         } else {
             text.setText("An error has occurred.");
@@ -71,6 +71,7 @@ public class ImageDataManager extends Application {
     }
 
     public static boolean createDirectories(ArrayList<String> paths, ArrayList<String> labels) {
+        int count = 0;
         for (int i = 0; i < paths.size(); i++) {
             String path = paths.get(i);
             String label = labels.get(i);
@@ -86,16 +87,16 @@ public class ImageDataManager extends Application {
             Path target = Paths.get(toFile);
 
             try {
-                System.out.println(source);
                 if (Files.exists(source)) {
                     Files.move(source, target);
+                    count += 1;
                 }
             } catch (IOException e) {
                 System.out.println(e.getMessage());
                 return false;
             }
         }
-        return true;
+        return count != 0;
     }
 
     public static void directoriesToCsv(String pathColumnName, String labelColumnName, String csvPath, String imgPath, Text text)
@@ -104,7 +105,7 @@ public class ImageDataManager extends Application {
         ArrayList<String>[] pathsAndLabels = processDirectories(imgPath);
         ArrayList<String> paths = pathsAndLabels[0];
         ArrayList<String> labels = pathsAndLabels[1];
-        if (createCsv(pathColumnName, labelColumnName, paths, labels, csvPath)) {
+        if (!paths.isEmpty() && createCsv(pathColumnName, labelColumnName, paths, labels, csvPath)) {
             text.setText("Operation complete!");
         } else {
             text.setText("An error has occurred.");
@@ -126,7 +127,6 @@ public class ImageDataManager extends Application {
             File[] files = f.listFiles(filter);
 
             for (File value : files) {
-                System.out.println(files.length);
                 String label = value.getName();
                 String[] imgNames = value.list();
                 for (String imgName : imgNames) {
@@ -152,7 +152,6 @@ public class ImageDataManager extends Application {
                 value.delete();
             }
         } catch (Exception e) {
-            System.out.println("Help");
             System.out.println(e.getMessage());
         }
 
