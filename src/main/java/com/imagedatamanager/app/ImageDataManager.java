@@ -4,7 +4,7 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvValidationException;
 import java.io.File;
-import java.io.FilenameFilter;
+import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.nio.file.*;
@@ -124,12 +124,16 @@ public class ImageDataManager extends Application {
         try {
             File f = new File(imgPath);
 
-            FilenameFilter filter = (f1, name) -> {
+            FileFilter filter = (file) -> {
                 // We only want folders
-                return f1.isDirectory() && !name.equals(".DS_Store");
+                return file.isDirectory() && !file.getName().equals(".DS_Store");
             };
 
             File[] files = f.listFiles(filter);
+
+            for (File value : files) {
+                System.out.println(value);
+            }
 
             if (files != null) {
                 for (File value : files) {
