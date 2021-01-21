@@ -15,6 +15,8 @@ import javafx.stage.Stage;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
+import javafx.animation.FadeTransition;
+import javafx.util.Duration;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -33,12 +35,12 @@ public class ImageDataManager extends Application {
             ArrayList<String> paths = pathsAndLabels.get(0);
             ArrayList<String> labels = pathsAndLabels.get(1);
             if (!paths.isEmpty() && createDirectories(paths, labels)) {
-                text.setText("Operation complete!");
+                flashText(text, "Operation complete!");
             } else {
-                text.setText("An error has occurred.");
+                flashText(text, "An error has occurred.");
             }
         } else {
-            text.setText("Invalid paths/labels!");
+            flashText(text, "Invalid paths/labels!");
         }
     }
 
@@ -108,9 +110,9 @@ public class ImageDataManager extends Application {
         ArrayList<String> paths = pathsAndLabels.get(0);
         ArrayList<String> labels = pathsAndLabels.get(1);
         if (!paths.isEmpty() && createCsv(pathColumnName, labelColumnName, paths, labels, csvPath)) {
-            text.setText("Operation complete!");
+            flashText(text, "Operation complete!");
         } else {
-            text.setText("An error has occurred.");
+            flashText(text, "An error has occurred.");
         }
     }
 
@@ -344,5 +346,33 @@ public class ImageDataManager extends Application {
         primaryStage.setScene(scene);
         primaryStage.setTitle("Image Data Manager");
         primaryStage.show();
+    }
+
+    public static void flashText(Text text, String content) {
+        //set text to flash
+        text.setText(content);
+
+        //Instantiating FadeTransition class
+        FadeTransition fade = new FadeTransition();
+
+        //setting the duration for the Fade transition
+        fade.setDuration(Duration.millis(5000));
+
+        //setting the initial and the target opacity value for the transition
+        fade.setFromValue(1.0);
+        fade.setToValue(0.0);
+
+        //setting cycle count for the Fade transition
+        fade.setCycleCount(1000);
+
+        //the transition will set to be auto reversed by setting this to true
+        fade.setAutoReverse(true);
+
+        fade.setCycleCount(1);
+
+        //setting Circle as the node onto which the transition will be applied
+        fade.setNode(text);
+
+        fade.play();
     }
 }
