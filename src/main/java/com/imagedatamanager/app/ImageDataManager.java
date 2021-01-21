@@ -10,11 +10,12 @@ import java.io.FileWriter;
 import java.nio.file.*;
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.geometry.*;
-import javafx.stage.Stage;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
+import javafx.scene.control.Alert.AlertType;
+import javafx.geometry.*;
+import javafx.stage.Stage;
 import javafx.animation.FadeTransition;
 import javafx.util.Duration;
 import java.io.IOException;
@@ -35,12 +36,12 @@ public class ImageDataManager extends Application {
             ArrayList<String> paths = pathsAndLabels.get(0);
             ArrayList<String> labels = pathsAndLabels.get(1);
             if (!paths.isEmpty() && createDirectories(paths, labels)) {
-                flashText(text, "Operation complete!");
+                flashAlert("Success", "CSV to Directories operation complete.", AlertType.INFORMATION);
             } else {
-                flashText(text, "An error has occurred.");
+                flashAlert("Error", "An error has occurred. Please ensure that your images are present.", AlertType.ERROR);
             }
         } else {
-            flashText(text, "Invalid paths/labels!");
+            flashAlert("Error", "An error has occurred. Please check your CSV image paths and labels.", AlertType.ERROR);
         }
     }
 
@@ -110,9 +111,9 @@ public class ImageDataManager extends Application {
         ArrayList<String> paths = pathsAndLabels.get(0);
         ArrayList<String> labels = pathsAndLabels.get(1);
         if (!paths.isEmpty() && createCsv(pathColumnName, labelColumnName, paths, labels, csvPath)) {
-            flashText(text, "Operation complete!");
+            flashAlert("Success", "Directories to CSV operation complete.", AlertType.INFORMATION);
         } else {
-            flashText(text, "An error has occurred.");
+            flashAlert("Error", "An error has occurred. Please ensure that your directories are present.", AlertType.ERROR);
         }
     }
 
@@ -374,5 +375,19 @@ public class ImageDataManager extends Application {
         fade.setNode(text);
 
         fade.play();
+    }
+
+    public static void flashAlert(String header, String content, AlertType type) {
+        //create alert
+        Alert alert = new Alert(type);
+
+        //set title
+        alert.setHeaderText(header);
+
+        //set content text
+        alert.setContentText(content);
+
+        //show the alert
+        alert.show();
     }
 }
