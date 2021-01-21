@@ -386,6 +386,9 @@ public class ImageDataManager extends Application {
         Alert alert = new Alert(type);
 
         //set title
+        alert.setTitle("Message");
+
+        //set header
         alert.setHeaderText(header);
 
         //set content text
