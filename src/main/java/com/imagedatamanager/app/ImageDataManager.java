@@ -35,7 +35,7 @@ public class ImageDataManager extends Application {
         if (pathsAndLabels != null) {
             ArrayList<String> paths = pathsAndLabels.get(0);
             ArrayList<String> labels = pathsAndLabels.get(1);
-            if (!paths.isEmpty() && createDirectories(paths, labels)) {
+            if (!paths.isEmpty() && createDirectories(paths, labels, text)) {
                 flashAlert("Success", "CSV to Directories operation complete.", AlertType.INFORMATION);
             } else {
                 flashAlert("Error", "An error has occurred. Please ensure that your images are present.", AlertType.ERROR);
@@ -75,7 +75,7 @@ public class ImageDataManager extends Application {
         return -1;
     }
 
-    public static boolean createDirectories(ArrayList<String> paths, ArrayList<String> labels) {
+    public static boolean createDirectories(ArrayList<String> paths, ArrayList<String> labels, Text text) {
         int count = 0;
         for (int i = 0; i < paths.size(); i++) {
             String path = paths.get(i);
@@ -100,6 +100,9 @@ public class ImageDataManager extends Application {
                 System.out.println(e.getMessage());
                 return false;
             }
+
+            String percentageDone = String.format("%.2f", (double)i/paths.size() * 100);
+            text.setText("Progress: " + percentageDone + "%");
         }
         return count != 0;
     }
@@ -110,7 +113,7 @@ public class ImageDataManager extends Application {
         ArrayList<ArrayList<String>> pathsAndLabels = processDirectories(imgPath);
         ArrayList<String> paths = pathsAndLabels.get(0);
         ArrayList<String> labels = pathsAndLabels.get(1);
-        if (!paths.isEmpty() && createCsv(pathColumnName, labelColumnName, paths, labels, csvPath)) {
+        if (!paths.isEmpty() && createCsv(pathColumnName, labelColumnName, paths, labels, csvPath, text)) {
             flashAlert("Success", "Directories to CSV operation complete.", AlertType.INFORMATION);
         } else {
             flashAlert("Error", "An error has occurred. Please ensure that your directories are present.", AlertType.ERROR);
@@ -130,10 +133,6 @@ public class ImageDataManager extends Application {
             };
 
             File[] files = f.listFiles(filter);
-
-            for (File value : files) {
-                System.out.println(value);
-            }
 
             if (files != null) {
                 for (File value : files) {
@@ -170,7 +169,7 @@ public class ImageDataManager extends Application {
         return new ArrayList<>(Arrays.asList(paths, labels));
     }
 
-    public static boolean createCsv(String pathColumnName, String labelColumnName, ArrayList<String> paths, ArrayList<String> labels, String csvPath) {
+    public static boolean createCsv(String pathColumnName, String labelColumnName, ArrayList<String> paths, ArrayList<String> labels, String csvPath, Text text) {
         try {
             CSVWriter csvWrite = new CSVWriter(new FileWriter(csvPath));
             String[] headers = {pathColumnName, labelColumnName};
@@ -178,6 +177,8 @@ public class ImageDataManager extends Application {
             for (int i = 0; i < paths.size(); i++) {
                 String[] rows = {paths.get(i), labels.get(i)};
                 csvWrite.writeNext(rows);
+                String percentageDone = String.format("%.2f", (double)i/paths.size() * 100);
+                text.setText("Progress: " + percentageDone + "%");
             }
             csvWrite.close();
         } catch (IOException e) {
