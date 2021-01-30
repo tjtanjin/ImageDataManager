@@ -1,4 +1,4 @@
-package com.imagedatamanager.app;
+package com.tjtanjin.idm;
 import javafx.application.Application;
 
 public class Launcher {

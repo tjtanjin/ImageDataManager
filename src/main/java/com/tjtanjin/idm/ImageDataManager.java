@@ -1,191 +1,23 @@
-package com.imagedatamanager.app;
+package com.tjtanjin.idm;
 
-import com.opencsv.CSVReader;
-import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvValidationException;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.nio.file.*;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
-import javafx.scene.control.Alert.AlertType;
 import javafx.geometry.*;
 import javafx.stage.Stage;
 import javafx.animation.FadeTransition;
 import javafx.util.Duration;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
+
+import static com.tjtanjin.idm.operations.CsvToDirectories.csvToDirectories;
+import static com.tjtanjin.idm.operations.DirectoriesToCsv.directoriesToCsv;
 
 public class ImageDataManager extends Application {
     public static void main(String[] args) {
         System.out.println("Running...");
-    }
-
-    public static void csvToDirectories(String pathColumnName, String labelColumnName, String csvPath, Text text)
-            throws IOException, CsvValidationException
-    {
-        ArrayList<ArrayList<String>> pathsAndLabels = processCsv(pathColumnName, labelColumnName, csvPath);
-        if (pathsAndLabels != null) {
-            ArrayList<String> paths = pathsAndLabels.get(0);
-            ArrayList<String> labels = pathsAndLabels.get(1);
-            if (!paths.isEmpty() && createDirectories(paths, labels, text)) {
-                flashAlert("Success", "CSV to Directories operation complete.", AlertType.INFORMATION);
-            } else {
-                flashAlert("Error", "An error has occurred. Please ensure that your images are present.", AlertType.ERROR);
-            }
-        } else {
-            flashAlert("Error", "An error has occurred. Please check your CSV image paths and labels.", AlertType.ERROR);
-        }
-    }
-
-    public static ArrayList<ArrayList<String>> processCsv(String pathColumnName, String labelColumnName, String csvPath) {
-        ArrayList<String> paths = new ArrayList<>();
-        ArrayList<String> labels = new ArrayList<>();
-        try (FileReader fr = new FileReader(csvPath, StandardCharsets.UTF_8); CSVReader reader = new CSVReader(fr)) {
-            String[] header = reader.readNext();
-            int labelIndex = getColumnIndex(header, labelColumnName);
-            int pathIndex = getColumnIndex(header, pathColumnName);
-            if (labelIndex == -1) {
-                return null;
-            }
-            String[] nextLine;
-            while ((nextLine = reader.readNext()) != null) {
-                paths.add(nextLine[pathIndex]);
-                labels.add(nextLine[labelIndex]);
-            }
-        } catch (IOException | CsvValidationException e) {
-            System.out.println(e.getMessage());
-        }
-        return new ArrayList<>(Arrays.asList(paths, labels));
-    }
-
-    public static int getColumnIndex(String[] row, String columnName) {
-        for (int i = 0; i < row.length; i++) {
-            if (row[i].equals(columnName)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    public static boolean createDirectories(ArrayList<String> paths, ArrayList<String> labels, Text text) {
-        int count = 0;
-        for (int i = 0; i < paths.size(); i++) {
-            String path = paths.get(i);
-            String label = labels.get(i);
-
-            String filePath = "./src/main/resources/train/".concat(label);
-            File file = new File(filePath);
-            //noinspection ResultOfMethodCallIgnored
-            file.mkdir();
-            String fromFile = "./src/main/resources/train/".concat(path);
-            String toFile = filePath.concat("/").concat(path);
-
-            Path source = Paths.get(fromFile);
-            Path target = Paths.get(toFile);
-
-            try {
-                if (Files.exists(source)) {
-                    Files.move(source, target);
-                    count += 1;
-                }
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-                return false;
-            }
-
-            String percentageDone = String.format("%.2f", (double)i/paths.size() * 100);
-            text.setText("Progress: " + percentageDone + "%");
-        }
-        return count != 0;
-    }
-
-    public static void directoriesToCsv(String pathColumnName, String labelColumnName, String csvPath, String imgPath, Text text)
-            throws IOException, CsvValidationException
-    {
-        ArrayList<ArrayList<String>> pathsAndLabels = processDirectories(imgPath);
-        ArrayList<String> paths = pathsAndLabels.get(0);
-        ArrayList<String> labels = pathsAndLabels.get(1);
-        if (!paths.isEmpty() && createCsv(pathColumnName, labelColumnName, paths, labels, csvPath, text)) {
-            flashAlert("Success", "Directories to CSV operation complete.", AlertType.INFORMATION);
-        } else {
-            flashAlert("Error", "An error has occurred. Please ensure that your directories are present.", AlertType.ERROR);
-        }
-    }
-
-    public static ArrayList<ArrayList<String>> processDirectories(String imgPath) {
-        ArrayList<String> paths = new ArrayList<>();
-        ArrayList<String> labels = new ArrayList<>();
-
-        try {
-            File f = new File(imgPath);
-
-            FileFilter filter = (file) -> {
-                // We only want folders
-                return file.isDirectory() && !file.getName().equals(".DS_Store");
-            };
-
-            File[] files = f.listFiles(filter);
-
-            if (files != null) {
-                for (File value : files) {
-                    String label = value.getName();
-                    String[] imgNames = value.list();
-                    if (imgNames != null) {
-                        for (String imgName : imgNames) {
-                            paths.add(imgName);
-                            labels.add(label);
-
-                            String fromFile = imgPath.concat("/").concat(label).concat("/").concat(imgName);
-                            String toFile = imgPath.concat("/").concat(imgName);
-
-                            Path source = Paths.get(fromFile);
-                            Path target = Paths.get(toFile);
-
-                            try {
-                                if (Files.exists(source)) {
-                                    Files.move(source, target);
-                                }
-                            } catch (IOException e) {
-                                System.out.println(e.getMessage());
-                                throw e;
-                            }
-                        }
-                    }
-                    //noinspection ResultOfMethodCallIgnored
-                    value.delete();
-                }
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-        return new ArrayList<>(Arrays.asList(paths, labels));
-    }
-
-    public static boolean createCsv(String pathColumnName, String labelColumnName, ArrayList<String> paths, ArrayList<String> labels, String csvPath, Text text) {
-        try {
-            CSVWriter csvWrite = new CSVWriter(new FileWriter(csvPath));
-            String[] headers = {pathColumnName, labelColumnName};
-            csvWrite.writeNext(headers);
-            for (int i = 0; i < paths.size(); i++) {
-                String[] rows = {paths.get(i), labels.get(i)};
-                csvWrite.writeNext(rows);
-                String percentageDone = String.format("%.2f", (double)i/paths.size() * 100);
-                text.setText("Progress: " + percentageDone + "%");
-            }
-            csvWrite.close();
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
-            return false;
-        }
-        return true;
     }
 
     @Override
@@ -380,22 +212,5 @@ public class ImageDataManager extends Application {
         fade.setNode(text);
 
         fade.play();
-    }
-
-    public static void flashAlert(String header, String content, AlertType type) {
-        //create alert
-        Alert alert = new Alert(type);
-
-        //set title
-        alert.setTitle("Message");
-
-        //set header
-        alert.setHeaderText(header);
-
-        //set content text
-        alert.setContentText(content);
-
-        //show the alert
-        alert.show();
     }
 }
